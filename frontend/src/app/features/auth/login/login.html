@@ -1,0 +1,59 @@
+<main class="login-page">
+  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h1 class="login-card__title">Hi</h1>
+
+    <div class="field">
+      <mat-icon class="field__icon" aria-hidden="true">mail_outline</mat-icon>
+      <input
+        class="field__input"
+        type="email"
+        formControlName="email"
+        placeholder="Email*"
+        autocomplete="username"
+        [class.field__input--invalid]="form.controls.email.invalid && form.controls.email.touched"
+      />
+    </div>
+    @if (form.controls.email.invalid && form.controls.email.touched) {
+      <p class="field__error">{{ emailErrorMessage() }}</p>
+    }
+
+    <div class="field">
+      <mat-icon class="field__icon" aria-hidden="true">vpn_key</mat-icon>
+      <input
+        class="field__input"
+        [type]="showPassword() ? 'text' : 'password'"
+        formControlName="password"
+        placeholder="Password*"
+        autocomplete="current-password"
+        [class.field__input--invalid]="
+          form.controls.password.invalid && form.controls.password.touched
+        "
+      />
+      <button
+        type="button"
+        class="field__toggle"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+      >
+        <mat-icon aria-hidden="true">{{
+          showPassword() ? 'visibility' : 'visibility_off'
+        }}</mat-icon>
+      </button>
+    </div>
+    @if (form.controls.password.invalid && form.controls.password.touched) {
+      <p class="field__error">Password is required.</p>
+    }
+
+    @if (errorMessage()) {
+      <p class="login-card__error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" class="login-card__submit" [disabled]="loading()">
+      @if (loading()) {
+        <mat-progress-spinner diameter="22" mode="indeterminate" />
+      } @else {
+        <span>LOGIN</span>
+      }
+    </button>
+  </form>
+</main>
