@@ -59,15 +59,25 @@ UI at `/swagger`. Run the test suite with `dotnet test backend`.
 
 ## Frontend
 
-Angular + Angular Material SPA - not built yet. This section will be filled in (with its own
-`frontend/README.md`) once it exists.
+Full details are in **[frontend/README.md](frontend/README.md)**. Quick start (needs Node
+22.22+ or 24.15+, and the backend running at `http://localhost:5029`):
+
+```bash
+cd frontend
+npm install
+npm start   # http://localhost:4200
+```
+
+Built so far: the **login page** (Task 1), matching the provided screenshot, wired to the real
+`/api/auth/login` endpoint, with a route guard protecting where the Purchase Bill page will
+live. The Purchase Bill form itself (Task 2) is next.
 
 ## Deliverables checklist
 
 - [x] GitHub repository, with a meaningful commit history
 - [x] SQL Server database script — [backend/database/PurchaseBillDb.sql](backend/database/PurchaseBillDb.sql)
 - [x] Backend README with setup instructions
-- [ ] Frontend (Angular + Angular Material)
-- [ ] Frontend README
+- [ ] Frontend (Angular + Angular Material) — login page done, Purchase Bill form next
+- [x] Frontend README
 - [ ] 5–10 minute screen recording
 - [ ] Completed submission form
