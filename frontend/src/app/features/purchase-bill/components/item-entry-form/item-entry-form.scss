@@ -1,0 +1,35 @@
+.entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__field {
+    flex: 1 1 140px;
+    min-width: 120px;
+
+    &--item {
+      flex: 2 1 220px;
+    }
+
+    &--batch {
+      flex: 1.5 1 180px;
+    }
+
+    &--num {
+      flex: 1 1 110px;
+    }
+  }
+
+  &__add {
+    height: 56px;
+    margin-top: 4px;
+    flex: 0 0 auto;
+  }
+}

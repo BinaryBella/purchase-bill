@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  overflow-x: auto;
+}
+
+.item-table {
+  width: 100%;
+  min-width: 900px;
+}
+
+.item-table__empty {
+  padding: 16px 0;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+}

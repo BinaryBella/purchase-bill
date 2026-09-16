@@ -1,0 +1,92 @@
+<div class="page">
+  <header class="page__header">
+    <div class="page__header-text">
+      <mat-icon class="page__header-icon">info</mat-icon>
+      <div>
+        <h1>Purchase Bill</h1>
+        <p>Enter information for the Purchase Bill</p>
+      </div>
+    </div>
+    <div class="page__header-actions">
+      <button
+        type="button"
+        mat-icon-button
+        matTooltip="Reload catalog"
+        (click)="loadCatalog()"
+        [attr.aria-label]="'Reload catalog'"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
+        matTooltip="Save"
+        [disabled]="saving()"
+        (click)="save()"
+        aria-label="Save purchase bill"
+      >
+        <mat-icon>check_circle</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
+        matTooltip="Log out"
+        (click)="logout()"
+        aria-label="Log out"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  @if (loading() || saving()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (loadError()) {
+    <div class="page__error">
+      <p>{{ loadError() }}</p>
+      <button type="button" mat-stroked-button (click)="loadCatalog()">Retry</button>
+    </div>
+  } @else {
+    <mat-tab-group class="page__tabs" animationDuration="0ms">
+      <mat-tab label="Header">
+        <p class="page__placeholder">Not part of this assignment's scope.</p>
+      </mat-tab>
+
+      <mat-tab label="Details">
+        <mat-tab-group animationDuration="0ms">
+          <mat-tab label="Items">
+            <div class="details">
+              <div class="details__main">
+                <app-item-entry-form
+                  [items]="items()"
+                  [locations]="locations()"
+                  (add)="addRow($event)"
+                />
+                <app-item-table [rows]="rows()" (remove)="removeRow($event)" />
+              </div>
+              <aside class="details__sidebar">
+                <app-item-summary [rows]="rows()" />
+              </aside>
+            </div>
+          </mat-tab>
+          <mat-tab label="Accounts">
+            <p class="page__placeholder">Not part of this assignment's scope.</p>
+          </mat-tab>
+          <mat-tab label="Taxes">
+            <p class="page__placeholder">Not part of this assignment's scope.</p>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-tab>
+
+      <mat-tab label="Notes">
+        <p class="page__placeholder">Not part of this assignment's scope.</p>
+      </mat-tab>
+
+      <mat-tab label="Documents">
+        <p class="page__placeholder">Not part of this assignment's scope.</p>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

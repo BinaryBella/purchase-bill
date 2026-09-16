@@ -55,7 +55,7 @@ export class Login {
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/purchase-bill']);
       },
       error: (error: unknown) => {
         this.loading.set(false);

@@ -8,9 +8,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
-    path: 'dashboard',
+    path: 'purchase-bill',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+    loadComponent: () =>
+      import('./features/purchase-bill/purchase-bill-page/purchase-bill-page').then(
+        (m) => m.PurchaseBillPage,
+      ),
   },
   { path: '**', redirectTo: 'login' },
 ];

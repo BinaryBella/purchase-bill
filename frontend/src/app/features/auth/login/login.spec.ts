@@ -46,7 +46,7 @@ describe('Login', () => {
     expect(component['emailErrorMessage']()).toBe('Enter a valid email address.');
   });
 
-  it('logs in and navigates to /dashboard on success', () => {
+  it('logs in and navigates to /purchase-bill on success', () => {
     authService.login.mockReturnValue(
       of({ token: 't', expiresAtUtc: '', username: 'info@enhanzer.com', locations: [] }),
     );
@@ -58,7 +58,7 @@ describe('Login', () => {
       email: 'info@enhanzer.com',
       password: 'Welcome#5',
     });
-    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(router.navigate).toHaveBeenCalledWith(['/purchase-bill']);
     expect(component['loading']()).toBe(false);
   });
 
