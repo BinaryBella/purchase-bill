@@ -68,16 +68,17 @@ npm install
 npm start   # http://localhost:4200
 ```
 
-Built so far: the **login page** (Task 1), matching the provided screenshot, wired to the real
-`/api/auth/login` endpoint, with a route guard protecting where the Purchase Bill page will
-live. The Purchase Bill form itself (Task 2) is next.
+Both pages are built: the **login page** (Task 1), matching the provided screenshot, and the
+**Purchase Bill form** (Task 2) - Item autocomplete, Batch dropdown, live Margin/Total
+Cost/Total Selling, an items grid, an Item Summary panel, and Save, which persists the whole
+bill to the backend. `/purchase-bill` is behind a route guard reachable only after login.
 
 ## Deliverables checklist
 
 - [x] GitHub repository, with a meaningful commit history
 - [x] SQL Server database script — [backend/database/PurchaseBillDb.sql](backend/database/PurchaseBillDb.sql)
 - [x] Backend README with setup instructions
-- [ ] Frontend (Angular + Angular Material) — login page done, Purchase Bill form next
+- [x] Frontend (Angular + Angular Material) — login page and Purchase Bill form both done
 - [x] Frontend README
 - [ ] 5–10 minute screen recording
 - [ ] Completed submission form
