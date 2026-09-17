@@ -57,7 +57,13 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Purchase Bill API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Purchase Bill API",
+        Version = "v1",
+        Description = "Backend for the Full Stack Developer assignment: Task 1 login against the " +
+                      "external Enhanzer POS API, and Task 2's Purchase Bill submission."
+    });
 
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
@@ -72,6 +78,17 @@ builder.Services.AddSwaggerGen(options =>
 
     options.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
     options.AddSecurityRequirement(new OpenApiSecurityRequirement { { jwtSecurityScheme, Array.Empty<string>() } });
+
+    // Pulls in the /// <summary> comments already on the controllers and DTOs, so Swagger
+    // shows real descriptions instead of just inferring everything from type/property names.
+    foreach (var xmlFile in new[] { "PurchaseBill.Api.xml", "PurchaseBill.Application.xml" })
+    {
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            options.IncludeXmlComments(xmlPath);
+        }
+    }
 });
 
 var app = builder.Build();
@@ -80,11 +97,17 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// Left on in every environment (not just Development): this is a take-home assignment
+// deliverable meant to be explored by a reviewer, not a production service with real users.
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.RoutePrefix = string.Empty;
+    // UseSwaggerUI's default JSON reference is relative to its own route prefix; now that the
+    // UI is hosted at "/" instead of "/swagger", it must be pointed at the JSON's real,
+    // unchanged location explicitly, or the UI 404s trying to fetch "/v1/swagger.json".
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Purchase Bill API v1");
+});
 
 app.UseHttpsRedirection();
 
