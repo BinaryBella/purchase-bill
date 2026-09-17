@@ -13,7 +13,7 @@ Purchase Bill form — built against the provided UI designs.
 
 | Layer    | Tech |
 |----------|------|
-| Frontend | Angular (latest), Angular Material, TypeScript |
+| Frontend | Angular 22 (standalone components, signals, zoneless), Angular Material, TypeScript |
 | Backend  | ASP.NET Core 8, C#, Entity Framework Core |
 | Database | SQL Server |
 
@@ -21,32 +21,99 @@ Purchase Bill form — built against the provided UI designs.
 
 ```
 purchase-bill/
-├── backend/    ASP.NET Core 8 Web API (Clean Architecture) - see backend/README.md
-├── frontend/   Angular + Angular Material SPA               - see frontend/README.md
+├── backend/    ASP.NET Core 8 Web API (Clean Architecture)
+├── frontend/   Angular + Angular Material SPA
 └── README.md   this file
 ```
 
+---
+
 ## Backend
 
-Full architecture notes and setup steps are in **[backend/README.md](backend/README.md)**.
-Quick start:
+Clean-architecture style, three projects plus a test project:
+
+```
+backend/
+  src/
+    PurchaseBill.Api             ASP.NET Core Web API - controllers, JWT auth, Swagger, middleware
+    PurchaseBill.Application     Entities, DTOs, services (business logic), FluentValidation validators
+    PurchaseBill.Infrastructure  EF Core (SQL Server), the Enhanzer HTTP client, JWT issuing
+  tests/
+    PurchaseBill.Tests           xUnit + Moq + EF Core InMemory
+  database/
+    PurchaseBillDb.sql           Idempotent SQL script generated from the EF Core migrations
+```
+
+`PurchaseBill.Application` only depends on its own interfaces (`IApplicationDbContext`,
+`IEnhanzerAuthClient`, `IJwtTokenGenerator`) — it has no reference to EF Core's SQL Server
+provider or to `HttpClient` directly, so the business logic (login flow, bill calculations) is
+tested in isolation from both the database and the external API.
+
+### How login works
+
+The SPA never talks to Enhanzer directly — only this API does:
+
+1. `POST /api/auth/login` receives `{ email, password }`.
+2. The API calls `https://ez-staging-api.azurewebsites.net/api/External_Api/POS_Api/Invoke`
+   with `API_Action=GetLoginData`, using the email for both `Company_Code` and `Username`.
+3. Enhanzer's response is one of three shapes (confirmed against staging):
+   - success: `Status_Code 200`, `Response_Body[0].User_Locations` populated.
+   - wrong password: `Status_Code 200`, `Response_Body[0].Doc_Msg = "Invalid Login Details"`.
+   - unknown company/user: `Status_Code 401`, `Response_Body = null`.
+4. On success, `User_Locations` is upserted into the `Location_Details` table (by
+   `Location_Code`, so logging in again doesn't create duplicates).
+5. The API issues its own short-lived JWT, which the Angular app then sends as
+   `Authorization: Bearer <token>` on every subsequent call.
+
+> **Known staging quirk:** the demo credentials (`info@enhanzer.com` / `Welcome#5`) are shared
+> across everyone building this assignment. Firing logins back-to-back against that account
+> sometimes gets throttled by the staging API, which answers HTTP 200 with an empty body
+> (`Status_Code: 0, Response_Body: null`) instead of a real error. The API detects this shape
+> and returns a clear "the authentication service is busy, try again" message rather than a
+> misleading generic failure. A normal, one-click-at-a-time login is not affected.
+
+### Backend prerequisites
+
+- .NET 8 SDK (pinned via `global.json`)
+- SQL Server reachable from your machine (a local instance, LocalDB, or a Docker container)
+
+### Backend setup
+
+**1. Configure secrets** (never committed — kept out of `appsettings.json` on purpose):
 
 ```bash
-# 1. Configure secrets (once) - see backend/README.md for the exact commands
 cd backend/src/PurchaseBill.Api
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=PurchaseBillDb;User Id=sa;Password=<your-sa-password>;TrustServerCertificate=True;"
 dotnet user-secrets set "Jwt:SigningKey" "<any long random string, 32+ chars>"
 cd ../../..
+```
 
-# 2. Create the database
+`Enhanzer:BaseUrl` and the `Jwt:Issuer`/`Audience`/`ExpiryMinutes` values are already set in
+`appsettings.json` (they aren't secrets).
+
+**2. Apply the database migration:**
+
+```bash
+dotnet tool install -g dotnet-ef   # once, if you don't already have it
 dotnet ef database update --project backend/src/PurchaseBill.Infrastructure --startup-project backend/src/PurchaseBill.Api
+```
 
-# 3. Run the API
+Alternatively, run `backend/database/PurchaseBillDb.sql` directly against SQL Server — it's the
+same migration, exported as an idempotent script (safe to re-run).
+
+**3. Run the API:**
+
+```bash
 dotnet run --project backend/src/PurchaseBill.Api
 ```
 
-The API listens on `http://localhost:5029` by default (see `launchSettings.json`), with Swagger
-UI served at the root (`/`), in every environment. Run the test suite with `dotnet test backend`.
+The API listens on `http://localhost:5029` by default (see `launchSettings.json`).
+
+**Swagger UI: [http://localhost:5029/](http://localhost:5029/)** — served at the root, in every
+environment (not just Development), since this is an assignment deliverable meant to be
+explored by a reviewer. Each endpoint's description comes from the `///` doc comments already on
+the controllers/DTOs. Use "Authorize" with the token returned from `/api/auth/login` to call the
+protected endpoints from there too.
 
 ### Backend endpoints
 
@@ -57,28 +124,120 @@ UI served at the root (`/`), in every environment. Run the test suite with `dotn
 | GET    | `/api/locations`      | Yes  | Saved locations for the "Batch" dropdown |
 | POST   | `/api/purchase-bills` | Yes  | Task 2 submit; persists the bill + its line items |
 
+### Running backend tests
+
+```bash
+dotnet test backend
+```
+
+27 tests covering the `Total Cost` / `Total Selling` / `Margin` formulas (including the brief's
+worked example: Cost 100, Price 150, Qty 5, Discount 20% → Total Cost 400, Total Selling 750),
+the login service against all of Enhanzer's response shapes above, the purchase bill service's
+totals/summary logic, and the FluentValidation rules.
+
+### Regenerating the SQL script
+
+After adding a new EF Core migration:
+
+```bash
+dotnet ef migrations script \
+  --project backend/src/PurchaseBill.Infrastructure \
+  --startup-project backend/src/PurchaseBill.Api \
+  --idempotent \
+  --output backend/database/PurchaseBillDb.sql
+```
+
+---
+
 ## Frontend
 
-Full details are in **[frontend/README.md](frontend/README.md)**. Quick start (needs Node
-22.22+ or 24.15+, and the backend running at `http://localhost:5029`):
+Angular SPA: a login page (Task 1) and the Purchase Bill form (Task 2), built with Angular 22
+(standalone components, signals, zoneless change detection) and Angular Material.
+
+- ✅ **Login page** — matches the provided screenshot, validates input, calls the backend,
+  stores the session, and redirects to `/purchase-bill`.
+- ✅ **Route protection** — `/purchase-bill` is behind `authGuard` and redirects to `/login`
+  without a valid session.
+- ✅ **Purchase Bill form** — Item autocomplete, Batch dropdown (from the locations saved at
+  login), live Margin/Total Cost/Total Selling, an items grid with remove, an Item Summary
+  panel, and Save (persists the whole bill to the backend in one call).
+
+### Frontend architecture
+
+```
+frontend/src/app/
+  core/
+    models/         DTOs mirroring the backend (auth, purchase bill), ApiProblemDetails helper
+    services/       AuthService (session signals + login call), PurchaseBillService (items/locations/create)
+    interceptors/   auth.interceptor (attaches the JWT), error.interceptor (401 -> logout + redirect)
+    guards/         authGuard - protects routes behind a valid session
+    utils/          purchase-bill-calculator - mirrors the backend's Margin/Total Cost/Total Selling formulas
+  features/
+    auth/login/               the login page
+    purchase-bill/
+      purchase-bill-page/     container: loads the catalog, owns the row list, header actions (Save/Logout)
+      components/
+        item-entry-form/      the Item/Batch/cost/qty/discount row + "Add"
+        item-table/           the grid of added rows, with remove
+        item-summary/         Total Items / Total Quantity panel
+```
+
+`AuthService` keeps the JWT in `sessionStorage` (cleared when the tab closes) and exposes
+`isAuthenticated`/`username` as signals, so the guard and any component can react without
+polling. `PurchaseBillPage` keeps the in-progress bill (`rows`) purely client-side - "Add" never
+touches the backend, only "Save" does, matching the brief's Add-then-summarize flow with one
+persist step at the end. The `Header`/`Notes`/`Documents`/`Accounts`/`Taxes` tabs from the
+screenshot are present for visual fidelity but out of this assignment's functional scope, and
+say so.
+
+### Frontend prerequisites
+
+- Node.js 22.22+ or 24.15+ (the Angular CLI's minimum — see `package.json` `engines` via
+  `@angular/cli`). This repo was built against Node 24.21.0 LTS.
+- The backend running at `http://localhost:5029` (see the Backend section above).
+
+### Frontend setup
 
 ```bash
 cd frontend
 npm install
-npm start   # http://localhost:4200
+npm start   # ng serve, http://localhost:4200
 ```
 
-Both pages are built: the **login page** (Task 1), matching the provided screenshot, and the
-**Purchase Bill form** (Task 2) - Item autocomplete, Batch dropdown, live Margin/Total
-Cost/Total Selling, an items grid, an Item Summary panel, and Save, which persists the whole
-bill to the backend. `/purchase-bill` is behind a route guard reachable only after login.
+`src/environments/environment.development.ts` points `apiUrl` at
+`http://localhost:5029/api`; `environment.ts` (production) uses a relative `/api` so it can be
+reverse-proxied alongside the built API.
+
+### Running frontend tests
+
+```bash
+cd frontend
+npm test
+```
+
+34 Vitest tests: `AuthService` and `PurchaseBillService` (HTTP calls via `HttpClientTestingModule`),
+the calculation utility (including the brief's worked example), `Login`, and the Purchase Bill
+components (`ItemEntryForm`'s live calculations/validation/catalog check, `ItemTable`,
+`ItemSummary`, and `PurchaseBillPage`'s load/add/remove/save/logout flows).
+
+Manually verified end to end against the real backend and SQL Server too: logging in, adding
+rows, watching the Item Summary and live calculations update, removing a row, and saving -
+confirmed the persisted bill's totals in the database matched what the UI showed.
+
+### Frontend notes
+
+- The backend's shared Enhanzer demo account can occasionally answer with "the authentication
+  service is busy right now" if hit right after another recent login attempt — see "How login
+  works" above for why. That message comes straight from the API and is shown as-is on the
+  login form.
+
+---
 
 ## Deliverables checklist
 
 - [x] GitHub repository, with a meaningful commit history
 - [x] SQL Server database script — [backend/database/PurchaseBillDb.sql](backend/database/PurchaseBillDb.sql)
-- [x] Backend README with setup instructions
+- [x] Project README with setup instructions (this file)
 - [x] Frontend (Angular + Angular Material) — login page and Purchase Bill form both done
-- [x] Frontend README
 - [ ] 5–10 minute screen recording
 - [ ] Completed submission form
