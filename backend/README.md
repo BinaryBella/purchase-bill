@@ -83,8 +83,11 @@ migration, exported as an idempotent script (safe to re-run).
 dotnet run --project src/PurchaseBill.Api
 ```
 
-Swagger UI is at `https://localhost:<port>/swagger` in Development. Use "Authorize" with the
-token returned from `/api/auth/login` to call the protected endpoints from there too.
+Swagger UI is served at the root (`http://localhost:5029/`) in every environment, not just
+Development - this is an assignment deliverable meant to be explored by a reviewer. Each
+endpoint's description comes from the `///` doc comments already on the controllers/DTOs (wired
+in via `GenerateDocumentationFile` + `IncludeXmlComments`). Use "Authorize" with the token
+returned from `/api/auth/login` to call the protected endpoints from there too.
 
 ## Endpoints
 

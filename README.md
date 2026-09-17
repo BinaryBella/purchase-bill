@@ -46,7 +46,7 @@ dotnet run --project backend/src/PurchaseBill.Api
 ```
 
 The API listens on `http://localhost:5029` by default (see `launchSettings.json`), with Swagger
-UI at `/swagger`. Run the test suite with `dotnet test backend`.
+UI served at the root (`/`), in every environment. Run the test suite with `dotnet test backend`.
 
 ### Backend endpoints
 
