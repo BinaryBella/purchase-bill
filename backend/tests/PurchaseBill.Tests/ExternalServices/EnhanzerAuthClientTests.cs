@@ -55,6 +55,7 @@ public class EnhanzerAuthClientTests
     {
         var handler = new StubHttpMessageHandler()
             .Enqueue(HttpStatusCode.OK, "not json at all")
+            .Enqueue(HttpStatusCode.OK, "not json at all")
             .Enqueue(HttpStatusCode.OK, "not json at all");
         var client = BuildClient(handler);
 
@@ -63,7 +64,7 @@ public class EnhanzerAuthClientTests
 
         Assert.DoesNotContain("nvalid", ex.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("try again", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(2, handler.RequestCount);
+        Assert.Equal(3, handler.RequestCount);
     }
 
     [Fact]
@@ -71,11 +72,44 @@ public class EnhanzerAuthClientTests
     {
         var handler = new StubHttpMessageHandler()
             .Enqueue(HttpStatusCode.OK, "null")
+            .Enqueue(HttpStatusCode.OK, "null")
             .Enqueue(HttpStatusCode.OK, "null");
         var client = BuildClient(handler);
 
         await Assert.ThrowsAsync<AuthenticationFailedException>(() => client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5"));
+        Assert.Equal(3, handler.RequestCount);
+    }
+
+    [Fact]
+    public async Task GetLoginDataAsync_WhenReadingTheResponseBodyThrows_RetriesAndSucceeds()
+    {
+        // Covers the gap where the body *read* itself (not just the JSON parse) faults - e.g. a
+        // connection dropped partway through streaming the content back.
+        var handler = new StubHttpMessageHandler()
+            .EnqueueOkWithUnreadableBody(new IOException("connection reset while reading response body"))
+            .Enqueue(HttpStatusCode.OK, SuccessBody);
+        var client = BuildClient(handler);
+
+        var envelope = await client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5");
+
+        Assert.Equal(200, envelope.StatusCode);
         Assert.Equal(2, handler.RequestCount);
+    }
+
+    [Fact]
+    public async Task GetLoginDataAsync_WhenReadingTheResponseBodyFailsOnEveryAttempt_ThrowsAnHonestMessage()
+    {
+        var handler = new StubHttpMessageHandler()
+            .EnqueueOkWithUnreadableBody(new IOException("boom"))
+            .EnqueueOkWithUnreadableBody(new IOException("boom"))
+            .EnqueueOkWithUnreadableBody(new IOException("boom"));
+        var client = BuildClient(handler);
+
+        var ex = await Assert.ThrowsAsync<AuthenticationFailedException>(
+            () => client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5"));
+
+        Assert.Contains("try again", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(3, handler.RequestCount);
     }
 
     [Fact]

@@ -22,6 +22,24 @@ public class StubHttpMessageHandler : HttpMessageHandler
         return this;
     }
 
+    /// <summary>A 200 OK whose body throws when actually read, simulating a stream fault partway through the response.</summary>
+    public StubHttpMessageHandler EnqueueOkWithUnreadableBody(Exception readException)
+    {
+        _responses.Enqueue(() => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ThrowingContent(readException) });
+        return this;
+    }
+
+    private class ThrowingContent(Exception exception) : HttpContent
+    {
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) => throw exception;
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+    }
+
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         RequestCount++;
