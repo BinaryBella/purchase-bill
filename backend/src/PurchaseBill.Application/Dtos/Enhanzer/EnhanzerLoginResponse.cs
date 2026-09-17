@@ -25,6 +25,9 @@ public class EnhanzerApiEnvelope
 
     [JsonPropertyName("Response_Body")]
     public List<EnhanzerLoginResult>? ResponseBody { get; init; }
+
+    [JsonPropertyName("Sync_Time")]
+    public string? SyncTime { get; init; }
 }
 
 public class EnhanzerLoginResult

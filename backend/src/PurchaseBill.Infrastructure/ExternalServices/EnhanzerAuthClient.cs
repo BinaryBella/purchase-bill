@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -52,6 +53,14 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
             ApiBody = new EnhanzerLoginBody { Username = email, Pw = password }
         };
 
+        // Sent as a buffered StringContent (with a Content-Length header) rather than via
+        // PostAsJsonAsync, which streams the body with Transfer-Encoding: chunked. Enhanzer's
+        // IIS/ASP.NET endpoint intermittently fails to read a chunked request body, treats the
+        // request as empty, and answers 200 with a blank envelope
+        // ({"Status_Code":0,"Message":null,"Response_Body":null}) - reproduced side by side with
+        // curl: 3 of 8 chunked requests came back blank, 0 of 8 with Content-Length did.
+        var json = JsonSerializer.Serialize(payload);
+
         for (var attempt = 1; attempt <= MaxAttempts; attempt++)
         {
             var isLastAttempt = attempt == MaxAttempts;
@@ -59,7 +68,8 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
             HttpResponseMessage response;
             try
             {
-                response = await httpClient.PostAsJsonAsync("api/External_Api/POS_Api/Invoke", payload, ct);
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await httpClient.PostAsync("api/External_Api/POS_Api/Invoke", content, ct);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
@@ -89,6 +99,7 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
             try
             {
                 raw = await response.Content.ReadAsStringAsync(ct);
+                var result = await response.Content.ReadFromJsonAsync<object>();
             }
             catch (Exception ex) when (ex is IOException or HttpRequestException or OperationCanceledException)
             {
@@ -129,7 +140,9 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
         try
         {
             var envelope = JsonSerializer.Deserialize<EnhanzerApiEnvelope>(raw, LenientJsonOptions);
-            if (envelope is not null)
+            var object_envelope = JsonSerializer.Deserialize<object>(raw, LenientJsonOptions);
+
+            if (envelope!.Message is not null)
             {
                 return envelope;
             }
@@ -162,8 +175,10 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
     private static EnhanzerApiEnvelope? TryExtractEnvelopeFromJsonTree(string raw)
     {
         JsonNode? root;
+        object? object_envelope;
         try
         {
+            object_envelope = JsonSerializer.Deserialize<object>(raw, LenientJsonOptions);
             root = JsonNode.Parse(raw);
         }
         catch (JsonException)
