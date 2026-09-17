@@ -101,4 +101,41 @@ public class EnhanzerAuthClientTests
         await Assert.ThrowsAsync<AuthenticationFailedException>(() => client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5"));
         Assert.Equal(1, handler.RequestCount);
     }
+
+    [Fact]
+    public async Task GetLoginDataAsync_WhenStatusCodeIsSentAsAQuotedString_ParsesLeniently()
+    {
+        // Reported bug candidate: Enhanzer's Status_Code is normally a JSON number, but a
+        // strictly-typed deserializer throws if that field is ever sent as a quoted string
+        // instead - even though the body is otherwise complete and the login succeeded.
+        const string body =
+            """{"Status_Code":"200","Message":"ok","Response_Body":[{"Email":"info@enhanzer.com","User_Locations":[{"Location_Code":"LOC-1","Location_Name":"Head Office"}]}]}""";
+        var handler = new StubHttpMessageHandler().Enqueue(HttpStatusCode.OK, body);
+        var client = BuildClient(handler);
+
+        var envelope = await client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5");
+
+        Assert.Equal(200, envelope.StatusCode);
+        Assert.Equal(1, handler.RequestCount); // recovered on the first response, no retry needed
+    }
+
+    [Fact]
+    public async Task GetLoginDataAsync_WhenAStringFieldIsSentAsANumber_FallsBackToManualJsonExtraction()
+    {
+        // User_Code is a string in our DTO; sending it unquoted (a JSON number) makes strict
+        // typed deserialization throw regardless of NumberHandling (that setting only covers
+        // numeric properties). The generic-JSON-tree fallback should still recover the rest of
+        // the envelope without needing a second request.
+        const string body =
+            """{"Status_Code":200,"Response_Body":[{"Email":"info@enhanzer.com","User_Code":12345,"User_Locations":[{"Location_Code":"LOC-1","Location_Name":"Head Office"}]}]}""";
+        var handler = new StubHttpMessageHandler().Enqueue(HttpStatusCode.OK, body);
+        var client = BuildClient(handler);
+
+        var envelope = await client.GetLoginDataAsync("info@enhanzer.com", "Welcome#5");
+
+        Assert.Equal(200, envelope.StatusCode);
+        Assert.Equal("12345", envelope.ResponseBody!.Single().UserCode);
+        Assert.Single(envelope.ResponseBody!.Single().UserLocations!);
+        Assert.Equal(1, handler.RequestCount);
+    }
 }
