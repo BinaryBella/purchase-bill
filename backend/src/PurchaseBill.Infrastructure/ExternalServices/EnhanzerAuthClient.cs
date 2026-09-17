@@ -24,13 +24,13 @@ namespace PurchaseBill.Infrastructure.ExternalServices;
 ///   1. parsing is lenient about type mismatches first (LenientJsonOptions),
 ///   2. if strict typed parsing still fails, the body is parsed as a generic JSON tree and the
 ///      fields we need are pulled out manually instead of requiring an exact type match, and
-///   3. only a genuinely unparseable (e.g. truncated) body gets one retry with a fresh request
-///      before giving up with an honest "please try again" message.
+///   3. only a genuinely unreadable/unparseable (e.g. truncated) body gets retried - up to
+///      MaxAttempts fresh requests - before giving up with an honest "please try again" message.
 /// </summary>
 public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions> options, ILogger<EnhanzerAuthClient> logger)
     : IEnhanzerAuthClient
 {
-    private const int MaxAttempts = 2;
+    private const int MaxAttempts = 3;
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(500);
 
     private static readonly JsonSerializerOptions LenientJsonOptions = new()
@@ -82,8 +82,27 @@ public class EnhanzerAuthClient(HttpClient httpClient, IOptions<EnhanzerOptions>
 
             // Read as a string first (rather than ReadFromJsonAsync straight off the stream) so a
             // malformed/truncated body can be logged and retried instead of surfacing as a
-            // generic 500 or, worse, being mistaken for invalid credentials.
-            var raw = await response.Content.ReadAsStringAsync(ct);
+            // generic 500 or, worse, being mistaken for invalid credentials. The read itself is
+            // guarded too - not just the parse - so a stream/cancellation fault here goes through
+            // the same retry path instead of escaping as an unhandled exception.
+            string raw;
+            try
+            {
+                raw = await response.Content.ReadAsStringAsync(ct);
+            }
+            catch (Exception ex) when (ex is IOException or HttpRequestException or OperationCanceledException)
+            {
+                if (isLastAttempt)
+                {
+                    logger.LogError(ex, "Failed to read the Enhanzer login response body for {Email} after {Attempts} attempt(s)", email, attempt);
+                    throw new AuthenticationFailedException("The authentication service returned an unreadable response. Please try again.");
+                }
+
+                logger.LogWarning(ex, "Failed to read the Enhanzer login response body for {Email} on attempt {Attempt}; retrying", email, attempt);
+                await Task.Delay(RetryDelay, ct);
+                continue;
+            }
+
             var envelope = TryParseEnvelope(raw, email, attempt);
 
             if (envelope is not null)
