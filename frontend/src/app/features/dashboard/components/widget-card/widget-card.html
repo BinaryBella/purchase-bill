@@ -1,0 +1,36 @@
+<section class="widget">
+  <header class="widget__header">
+    <h2 class="widget__title">{{ title() }}</h2>
+    <label class="widget__range">
+      <span class="widget__range-label">{{ title() }} date range</span>
+      <select (change)="onRangeChange($event)">
+        @for (option of ranges; track option.value) {
+          <option [value]="option.value" [selected]="option.value === range()">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+    </label>
+  </header>
+
+  <div class="widget__body">
+    @switch (state().status) {
+      @case ('loading') {
+        <p class="widget__message" role="status">Loading…</p>
+      }
+      @case ('error') {
+        <div class="widget__message widget__message--error" role="alert">
+          <p>{{ errorMessage() }}</p>
+          <button type="button" (click)="retry.emit()">Retry</button>
+        </div>
+      }
+      @default {
+        @if (isEmpty()) {
+          <p class="widget__message">{{ emptyMessage() }}</p>
+        } @else {
+          <ng-content />
+        }
+      }
+    }
+  </div>
+</section>

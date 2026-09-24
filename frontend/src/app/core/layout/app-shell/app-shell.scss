@@ -1,0 +1,216 @@
+$topbar-height: 48px;
+$sidebar-width: 72px;
+
+.shell {
+  display: grid;
+  grid-template-columns: $sidebar-width 1fr;
+  grid-template-rows: $topbar-height 1fr;
+  grid-template-areas:
+    'topbar topbar'
+    'sidebar content';
+  min-height: 100vh;
+  background: #f5f6fa;
+
+  &__topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 16px;
+    color: #fff;
+    background: linear-gradient(90deg, #00b0f0 0%, #0b64b8 45%, #08347f 100%);
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  &__logo-mark {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.15em;
+  }
+
+  &__page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__org {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 8px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__icon-btn {
+    display: flex;
+    padding: 6px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.85;
+      cursor: default;
+    }
+  }
+
+  &__account {
+    position: relative;
+  }
+
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #08347f;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  &__menu {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    z-index: 10;
+    min-width: 180px;
+    padding: 8px 0;
+    border-radius: 8px;
+    background: #fff;
+    color: #3c4043;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 8px 16px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+
+      &:hover {
+        background: #f1f3f4;
+      }
+    }
+  }
+
+  &__menu-user {
+    margin: 0;
+    padding: 4px 16px 8px;
+    font-size: 12px;
+    color: #80868b;
+    overflow-wrap: anywhere;
+  }
+
+  &__sidebar {
+    grid-area: sidebar;
+    display: flex;
+    flex-direction: column;
+    background: #0a2f7a;
+  }
+
+  &__caret {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  &__settings {
+    margin-right: auto;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &__version {
+    margin-top: auto;
+    padding: 10px 4px;
+    font-size: 9px;
+    text-align: center;
+    color: #fff;
+  }
+
+  &__nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 4px;
+    font-size: 10px;
+    color: #fff;
+    text-decoration: none;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &--active,
+    &:not(&--disabled):hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    &--disabled {
+      opacity: 0.85;
+      cursor: default;
+    }
+  }
+
+  &__content {
+    grid-area: content;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'topbar'
+      'sidebar'
+      'content';
+    grid-template-rows: $topbar-height auto 1fr;
+
+    &__sidebar {
+      flex-direction: row;
+      overflow-x: auto;
+    }
+
+    &__nav-item {
+      flex: none;
+      min-width: 64px;
+    }
+
+    &__org,
+    &__page span {
+      display: none;
+    }
+  }
+}

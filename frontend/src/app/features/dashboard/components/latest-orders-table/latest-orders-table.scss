@@ -1,0 +1,40 @@
+:host {
+  display: block;
+}
+
+.orders {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #3c4043;
+
+  &__count {
+    margin: 0 0 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3c4043;
+  }
+
+  &__num {
+    text-align: right;
+  }
+
+  th {
+    padding: 10px 12px;
+    font-weight: 500;
+    text-align: left;
+    color: #1a6fc9;
+
+    &.orders__num {
+      text-align: right;
+    }
+  }
+
+  td {
+    padding: 14px 12px;
+  }
+
+  tbody tr:nth-child(odd) {
+    background: #f6f7f9;
+  }
+}

@@ -30,6 +30,7 @@ public class PurchaseBillService(IApplicationDbContext db) : IPurchaseBillServic
 
         var bill = new Entities.PurchaseBill
         {
+            PoNumber = PoNumber.Temporary(),
             CreatedByUsername = username,
             CreatedAt = DateTime.UtcNow
         };
@@ -61,16 +62,51 @@ public class PurchaseBillService(IApplicationDbContext db) : IPurchaseBillServic
         db.PurchaseBills.Add(bill);
         await db.SaveChangesAsync(ct);
 
-        return new PurchaseBillResponse(
-            bill.Id,
-            bill.CreatedAt,
-            bill.TotalItems,
-            bill.TotalQuantity,
-            bill.TotalCost,
-            bill.TotalSelling,
-            bill.Items.Select(i => new PurchaseBillItemResponse(
-                i.Id, i.ItemName, i.BatchLocationCode, i.BatchLocationName,
-                i.StandardCost, i.StandardPrice, i.Margin, i.Quantity, i.FreeQuantity,
-                i.DiscountPercent, i.TotalCost, i.TotalSelling)).ToList());
+        // The number is derived from the identity Id, which only exists once the row is inserted.
+        bill.PoNumber = PoNumber.Format(bill.Id);
+        await db.SaveChangesAsync(ct);
+
+        return ToResponse(bill);
     }
+
+    public async Task<PagedResult<PurchaseBillSummaryDto>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var totalCount = await db.PurchaseBills.CountAsync(ct);
+        var items = await db.PurchaseBills
+            .AsNoTracking()
+            .OrderByDescending(b => b.CreatedAt).ThenByDescending(b => b.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(b => new PurchaseBillSummaryDto(b.Id, b.PoNumber, b.CreatedAt, b.TotalItems, b.TotalQuantity, b.TotalCost))
+            .ToListAsync(ct);
+
+        return new PagedResult<PurchaseBillSummaryDto>(items, page, pageSize, totalCount);
+    }
+
+    public async Task<PurchaseBillResponse> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        var bill = await db.PurchaseBills
+            .AsNoTracking()
+            .Include(b => b.Items)
+            .FirstOrDefaultAsync(b => b.Id == id, ct)
+            ?? throw new EntityNotFoundException($"Purchase bill {id} was not found.");
+
+        return ToResponse(bill);
+    }
+
+    private static PurchaseBillResponse ToResponse(Entities.PurchaseBill bill) => new(
+        bill.Id,
+        bill.PoNumber,
+        bill.CreatedAt,
+        bill.TotalItems,
+        bill.TotalQuantity,
+        bill.TotalCost,
+        bill.TotalSelling,
+        bill.Items.OrderBy(i => i.Id).Select(i => new PurchaseBillItemResponse(
+            i.Id, i.ItemName, i.BatchLocationCode, i.BatchLocationName,
+            i.StandardCost, i.StandardPrice, i.Margin, i.Quantity, i.FreeQuantity,
+            i.DiscountPercent, i.TotalCost, i.TotalSelling)).ToList());
 }

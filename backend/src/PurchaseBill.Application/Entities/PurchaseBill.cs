@@ -6,6 +6,10 @@ namespace PurchaseBill.Application.Entities;
 public class PurchaseBill
 {
     public int Id { get; set; }
+
+    /// <summary>Human-readable purchase order number (e.g. PO-000012), derived from <see cref="Id"/> on save.</summary>
+    public string PoNumber { get; set; } = string.Empty;
+
     public string CreatedByUsername { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 

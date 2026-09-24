@@ -24,6 +24,7 @@ export interface PurchaseBillItemResponse extends PurchaseBillItemRequest {
 
 export interface PurchaseBillResponse {
   id: number;
+  poNumber: string;
   createdAt: string;
   totalItems: number;
   totalQuantity: number;

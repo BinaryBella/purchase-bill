@@ -1,0 +1,30 @@
+<app-widget-card
+  title="Latest Purchase Orders"
+  [(range)]="loader.range"
+  [state]="loader.state()"
+  [isEmpty]="orders().length === 0"
+  emptyMessage="No purchase orders for this period."
+  (retry)="loader.reload()"
+>
+  <p class="orders__count">{{ orders().length }} latest {{ orders().length === 1 ? 'order' : 'orders' }}</p>
+  <table class="orders">
+    <thead>
+      <tr>
+        <th scope="col">Order No</th>
+        <th scope="col" class="orders__num">Net Amount</th>
+        <th scope="col" class="orders__num">No. of Items</th>
+        <th scope="col">Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (order of orders(); track order.id) {
+        <tr>
+          <td>{{ order.poNumber }}</td>
+          <td class="orders__num">{{ order.netAmount | number: '1.2-2' }}</td>
+          <td class="orders__num">{{ order.itemCount }}</td>
+          <td>{{ order.createdAt | date: 'MMM d, HH:mm' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</app-widget-card>

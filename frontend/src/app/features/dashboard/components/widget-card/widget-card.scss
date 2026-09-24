@@ -1,0 +1,85 @@
+.widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 16px 20px 20px;
+  background: #fff;
+  border: 1px solid #e3e6ee;
+  border-radius: 14px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8eaf0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5f6368;
+  }
+
+  &__range {
+    position: relative;
+
+    select {
+      appearance: none;
+      padding: 4px 18px 4px 4px;
+      border: 0;
+      background: transparent
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231a6fc9' stroke-width='1.5'/%3E%3C/svg%3E")
+        no-repeat right 4px center;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a6fc9;
+      cursor: pointer;
+    }
+  }
+
+  // Visually hidden, but announced by screen readers as the select's accessible name.
+  &__range-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  &__body {
+    flex: 1;
+    padding-top: 16px;
+  }
+
+  &__message {
+    margin: 32px 0;
+    text-align: center;
+    font-size: 14px;
+    color: #80868b;
+
+    &--error {
+      color: #b3261e;
+
+      p {
+        margin: 0 0 8px;
+      }
+
+      button {
+        padding: 4px 14px;
+        border: 1px solid currentColor;
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+    }
+  }
+}

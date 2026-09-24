@@ -1,0 +1,29 @@
+<app-widget-card
+  title="Oldest Order Items"
+  [(range)]="loader.range"
+  [state]="loader.state()"
+  [isEmpty]="items().length === 0"
+  emptyMessage="No purchase order items for this period."
+  (retry)="loader.reload()"
+>
+  <ul class="items">
+    @for (item of items(); track $index) {
+      <li class="items__row">
+        <span class="items__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 9l9-5 9 5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18" />
+          </svg>
+        </span>
+        <div class="items__main">
+          <span class="items__name">{{ item.itemName }}</span>
+          <span class="items__meta">{{ item.poNumber }}</span>
+          <span class="items__meta">Added {{ item.createdAt | date: 'MMM d, HH:mm' }}</span>
+        </div>
+        <span class="items__qty">
+          <span class="items__qty-value">{{ item.quantity | number: '1.0-2' }}</span>
+          <span class="items__meta">Qty</span>
+        </span>
+      </li>
+    }
+  </ul>
+</app-widget-card>

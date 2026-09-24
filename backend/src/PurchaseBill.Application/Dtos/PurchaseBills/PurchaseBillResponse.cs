@@ -17,6 +17,7 @@ public record PurchaseBillItemResponse(
 /// <summary>Mirrors the "Item Summary" panel: total row count and summed quantity.</summary>
 public record PurchaseBillResponse(
     int Id,
+    string PoNumber,
     DateTime CreatedAt,
     int TotalItems,
     decimal TotalQuantity,

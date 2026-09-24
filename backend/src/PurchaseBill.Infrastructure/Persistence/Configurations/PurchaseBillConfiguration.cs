@@ -12,8 +12,13 @@ public class PurchaseBillConfiguration : IEntityTypeConfiguration<PurchaseBillEn
 
         builder.HasKey(b => b.Id);
 
+        builder.Property(b => b.PoNumber).HasColumnName("Po_Number").HasMaxLength(40).IsRequired();
+        builder.HasIndex(b => b.PoNumber).IsUnique();
+
         builder.Property(b => b.CreatedByUsername).HasColumnName("Created_By_Username").HasMaxLength(256).IsRequired();
         builder.Property(b => b.CreatedAt).HasColumnName("Created_At");
+        // Dashboard widgets sort and filter bills by date.
+        builder.HasIndex(b => b.CreatedAt);
 
         builder.Property(b => b.TotalItems).HasColumnName("Total_Items");
         builder.Property(b => b.TotalQuantity).HasColumnName("Total_Quantity").HasColumnType("decimal(18,2)");

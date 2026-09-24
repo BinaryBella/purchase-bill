@@ -41,6 +41,7 @@ describe('PurchaseBillService', () => {
   it('posts a new purchase bill', () => {
     const response: PurchaseBillResponse = {
       id: 1,
+      poNumber: 'PO-000001',
       createdAt: new Date().toISOString(),
       totalItems: 1,
       totalQuantity: 5,

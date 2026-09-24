@@ -1,0 +1,46 @@
+<app-widget-card
+  title="Quantity by Item"
+  [(range)]="loader.range"
+  [state]="loader.state()"
+  [isEmpty]="slices().length === 0"
+  emptyMessage="No items for this period."
+  (retry)="loader.reload()"
+>
+  <div class="donut">
+    <svg
+      class="donut__chart"
+      viewBox="0 0 160 160"
+      role="img"
+      [attr.aria-label]="'Donut chart of ' + (total() | number: '1.0-2') + ' total items by name'"
+    >
+      <g transform="rotate(-90 80 80)" fill="none" stroke-width="26">
+        @for (slice of slices(); track slice.itemName) {
+          <circle
+            cx="80"
+            cy="80"
+            [attr.r]="radius"
+            [attr.stroke]="slice.color"
+            [attr.stroke-dasharray]="slice.dashArray"
+            [attr.stroke-dashoffset]="slice.dashOffset"
+          />
+        }
+      </g>
+    </svg>
+
+    <div class="donut__details">
+      <p class="donut__total">{{ total() | number: '1.0-2' }}</p>
+      <p class="donut__total-label">Total quantity</p>
+      <ul class="donut__legend">
+        @for (slice of slices(); track slice.itemName) {
+          <li>
+            <span class="donut__dot" [style.background]="slice.color"></span>
+            <span class="donut__legend-text">
+              <span class="donut__legend-qty">{{ slice.totalQuantity | number: '1.0-2' }}</span>
+              <span class="donut__legend-name">{{ slice.itemName }} · {{ slice.percent | number: '1.0-1' }}%</span>
+            </span>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</app-widget-card>

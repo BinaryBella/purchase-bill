@@ -1,0 +1,72 @@
+<div class="shell">
+  <header class="shell__topbar">
+    <a class="shell__logo" routerLink="/dashboard" aria-label="Go to dashboard">
+      <span class="shell__logo-mark">›››</span>eZuite
+    </a>
+
+    <a class="shell__page" routerLink="/dashboard">
+      <mat-icon>home</mat-icon>
+      <span>Dashboard</span>
+      <mat-icon class="shell__caret">arrow_drop_down</mat-icon>
+    </a>
+    <button type="button" class="shell__icon-btn shell__settings" aria-label="Dashboard settings" disabled>
+      <mat-icon>settings</mat-icon>
+    </button>
+
+    <div class="shell__actions">
+      <span class="shell__org">
+        <mat-icon>business</mat-icon>
+        My Organization
+        <mat-icon class="shell__caret">arrow_drop_down</mat-icon>
+      </span>
+      <button type="button" class="shell__icon-btn" aria-label="Notifications" disabled>
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+      <button type="button" class="shell__icon-btn" aria-label="Preferences" disabled>
+        <mat-icon>tune</mat-icon>
+      </button>
+      <button type="button" class="shell__icon-btn" aria-label="Help" disabled>
+        <mat-icon>help_outline</mat-icon>
+      </button>
+      <div class="shell__account">
+        <button
+          type="button"
+          class="shell__avatar"
+          [attr.aria-expanded]="menuOpen()"
+          aria-haspopup="menu"
+          [attr.aria-label]="'Account menu for ' + (username() ?? 'user')"
+          (click)="toggleMenu()"
+        >
+          {{ initial() }}
+        </button>
+        @if (menuOpen()) {
+          <div class="shell__menu" role="menu">
+            <p class="shell__menu-user">{{ username() }}</p>
+            <button type="button" role="menuitem" (click)="logout()">Log out</button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <nav class="shell__sidebar" aria-label="Modules">
+    @for (item of navItems; track item.label) {
+      @if (item.route) {
+        <a class="shell__nav-item" [routerLink]="item.route" routerLinkActive="shell__nav-item--active">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <span class="shell__nav-item shell__nav-item--disabled" aria-disabled="true">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </span>
+      }
+    }
+    <span class="shell__version">V 5.0<br />© eZuite</span>
+  </nav>
+
+  <main class="shell__content">
+    <router-outlet />
+  </main>
+</div>

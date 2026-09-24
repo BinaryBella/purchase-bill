@@ -1,0 +1,76 @@
+:host {
+  display: block;
+}
+
+.donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px 24px;
+
+  &__chart {
+    flex: none;
+    width: 190px;
+    height: 190px;
+  }
+
+  &__details {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  &__total {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    color: #3c4043;
+  }
+
+  &__total-label {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #5f6368;
+  }
+
+  &__legend {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  &__dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-top: 5px;
+    border-radius: 50%;
+  }
+
+  &__legend-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 12px;
+    color: #5f6368;
+  }
+
+  &__legend-qty {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3c4043;
+  }
+
+  &__legend-name {
+    overflow-wrap: anywhere;
+  }
+}

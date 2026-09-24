@@ -8,7 +8,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { forkJoin } from 'rxjs';
-import { AuthService } from '../../../core/services/auth.service';
 import { PurchaseBillService } from '../../../core/services/purchase-bill.service';
 import { extractErrorMessage } from '../../../core/models/api-error.model';
 import { LocationDto } from '../../../core/models/auth.models';
@@ -44,11 +43,9 @@ import { ItemSummary } from '../components/item-summary/item-summary';
 })
 export class PurchaseBillPage {
   private readonly purchaseBillService = inject(PurchaseBillService);
-  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly username = this.authService.username;
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly loadError = signal<string | null>(null);
@@ -120,7 +117,7 @@ export class PurchaseBillPage {
         next: (response) => {
           this.saving.set(false);
           this.rows.set([]);
-          this.snackBar.open(`Purchase Bill #${response.id} saved.`, 'Dismiss', { duration: 4000 });
+          this.snackBar.open(`Purchase Bill ${response.poNumber} saved.`, 'Dismiss', { duration: 4000 });
         },
         error: (error: unknown) => {
           this.saving.set(false);
@@ -134,8 +131,7 @@ export class PurchaseBillPage {
       });
   }
 
-  protected logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  protected close(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

@@ -13,6 +13,8 @@ public class PurchaseBillItemConfiguration : IEntityTypeConfiguration<PurchaseBi
         builder.HasKey(i => i.Id);
 
         builder.Property(i => i.ItemName).HasColumnName("Item_Name").HasMaxLength(100).IsRequired();
+        // The dashboard donut groups all items by name.
+        builder.HasIndex(i => i.ItemName);
         builder.Property(i => i.BatchLocationCode).HasColumnName("Batch_Location_Code").HasMaxLength(100).IsRequired();
         builder.Property(i => i.BatchLocationName).HasColumnName("Batch_Location_Name").HasMaxLength(200).IsRequired();
 

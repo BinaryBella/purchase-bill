@@ -5,7 +5,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { PurchaseBillPage } from './purchase-bill-page';
-import { AuthService } from '../../../core/services/auth.service';
 import { PurchaseBillService } from '../../../core/services/purchase-bill.service';
 
 describe('PurchaseBillPage', () => {
@@ -16,7 +15,6 @@ describe('PurchaseBillPage', () => {
     getLocations: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
   };
-  let authService: { username: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn> };
   let openSpy: ReturnType<typeof vi.spyOn>;
 
@@ -35,7 +33,6 @@ describe('PurchaseBillPage', () => {
       getLocations: vi.fn().mockReturnValue(of(locations)),
       create: vi.fn(),
     };
-    authService = { username: vi.fn().mockReturnValue('info@enhanzer.com'), logout: vi.fn() };
     router = { navigate: vi.fn() };
     // MatSnackBarModule (imported by the component itself) re-provides MatSnackBar in its own
     // environment injector, which shadows a plain TestBed `useValue` override - spying on the
@@ -48,7 +45,6 @@ describe('PurchaseBillPage', () => {
       imports: [PurchaseBillPage, NoopAnimationsModule],
       providers: [
         { provide: PurchaseBillService, useValue: purchaseBillService },
-        { provide: AuthService, useValue: authService },
         { provide: Router, useValue: router },
       ],
     }).compileComponents();
@@ -140,6 +136,7 @@ describe('PurchaseBillPage', () => {
     purchaseBillService.create.mockReturnValue(
       of({
         id: 7,
+        poNumber: 'PO-000007',
         createdAt: '',
         totalItems: 1,
         totalQuantity: 5,
@@ -165,7 +162,7 @@ describe('PurchaseBillPage', () => {
       ],
     });
     expect(component['rows']()).toEqual([]);
-    expect(openSpy).toHaveBeenCalledWith('Purchase Bill #7 saved.', 'Dismiss', { duration: 4000 });
+    expect(openSpy).toHaveBeenCalledWith('Purchase Bill PO-000007 saved.', 'Dismiss', { duration: 4000 });
   });
 
   it('shows the backend error message and keeps the rows if saving fails', () => {
@@ -201,12 +198,11 @@ describe('PurchaseBillPage', () => {
     });
   });
 
-  it('logs out and navigates to /login', () => {
+  it('closes back to the dashboard', () => {
     createComponent();
 
-    component['logout']();
+    component['close']();
 
-    expect(authService.logout).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 });

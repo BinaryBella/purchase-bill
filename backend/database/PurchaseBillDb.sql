@@ -98,6 +98,61 @@ BEGIN
 END;
 GO
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    ALTER TABLE [Purchase_Bill] ADD [Po_Number] nvarchar(40) NOT NULL DEFAULT N'';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    EXEC(N'UPDATE [Purchase_Bill] SET [Po_Number] = ''PO-'' + RIGHT(''000000'' + CAST([Id] AS varchar(10)), 6)');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Purchase_Bill_Po_Number] ON [Purchase_Bill] ([Po_Number]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Purchase_Bill_Created_At] ON [Purchase_Bill] ([Created_At]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    CREATE INDEX [IX_Purchase_Bill_Item_Item_Name] ON [Purchase_Bill_Item] ([Item_Name]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260924090000_AddPoNumberAndDashboardIndexes'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260924090000_AddPoNumberAndDashboardIndexes', N'8.0.10');
+END;
+GO
+
 COMMIT;
 GO
 
