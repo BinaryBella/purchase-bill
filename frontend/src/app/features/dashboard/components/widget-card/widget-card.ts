@@ -15,7 +15,9 @@ import { WidgetState } from '../../widget-loader';
 })
 export class WidgetCard {
   readonly title = input.required<string>();
-  readonly range = model.required<DashboardRange>();
+  readonly range = model<DashboardRange>('All');
+  /** Widgets that are not date-filtered hide the dropdown. */
+  readonly showRange = input(true);
   readonly state = input.required<WidgetState<unknown>>();
   readonly isEmpty = input(false);
   readonly emptyMessage = input('Nothing to show for this period.');

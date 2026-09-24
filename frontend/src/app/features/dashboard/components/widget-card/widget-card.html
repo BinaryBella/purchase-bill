@@ -1,16 +1,18 @@
 <section class="widget">
   <header class="widget__header">
     <h2 class="widget__title">{{ title() }}</h2>
-    <label class="widget__range">
-      <span class="widget__range-label">{{ title() }} date range</span>
-      <select (change)="onRangeChange($event)">
-        @for (option of ranges; track option.value) {
-          <option [value]="option.value" [selected]="option.value === range()">
-            {{ option.label }}
-          </option>
-        }
-      </select>
-    </label>
+    @if (showRange()) {
+      <label class="widget__range">
+        <span class="widget__range-label">{{ title() }} date range</span>
+        <select (change)="onRangeChange($event)">
+          @for (option of ranges; track option.value) {
+            <option [value]="option.value" [selected]="option.value === range()">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </label>
+    }
   </header>
 
   <div class="widget__body">

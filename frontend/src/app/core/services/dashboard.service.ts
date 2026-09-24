@@ -14,16 +14,14 @@ import {
 export class DashboardService {
   private readonly http = inject(HttpClient);
 
-  getLatestOrders(range: DashboardRange): Observable<LatestOrder[]> {
-    return this.http.get<LatestOrder[]>(`${environment.apiUrl}/dashboard/latest-orders`, {
-      params: this.rangeParams(range),
-    });
+  /** The 5 most recently added purchase orders (always across all orders). */
+  getLatestOrders(): Observable<LatestOrder[]> {
+    return this.http.get<LatestOrder[]>(`${environment.apiUrl}/dashboard/latest-orders`);
   }
 
-  getOldestItems(range: DashboardRange): Observable<OldestItem[]> {
-    return this.http.get<OldestItem[]>(`${environment.apiUrl}/dashboard/oldest-items`, {
-      params: this.rangeParams(range),
-    });
+  /** The 10 oldest purchase order line items (always across all orders). */
+  getOldestItems(): Observable<OldestItem[]> {
+    return this.http.get<OldestItem[]>(`${environment.apiUrl}/dashboard/oldest-items`);
   }
 
   getItemsByQuantity(range: DashboardRange): Observable<ItemsByQuantity> {

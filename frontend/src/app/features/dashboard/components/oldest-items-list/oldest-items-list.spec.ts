@@ -1,4 +1,3 @@
-import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { DashboardService } from '../../../../core/services/dashboard.service';
@@ -33,13 +32,14 @@ describe('OldestItemsList', () => {
     expect(rows[1].textContent).toContain('2.5');
   });
 
-  it('defaults to all orders, not just today', async () => {
+  it('has no date-range dropdown', async () => {
     dashboardService.getOldestItems.mockReturnValue(of([]));
 
-    TestBed.createComponent(OldestItemsList);
-    await TestBed.inject(ApplicationRef).whenStable();
+    const fixture = TestBed.createComponent(OldestItemsList);
+    await fixture.whenStable();
 
-    expect(dashboardService.getOldestItems).toHaveBeenCalledWith('All');
+    expect((fixture.nativeElement as HTMLElement).querySelector('select')).toBeNull();
+    expect(dashboardService.getOldestItems).toHaveBeenCalledWith();
   });
 
   it('shows the empty state when there are no items', async () => {
@@ -49,7 +49,7 @@ describe('OldestItemsList', () => {
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'No purchase order items for this period.',
+      'No purchase order items yet.',
     );
   });
 });

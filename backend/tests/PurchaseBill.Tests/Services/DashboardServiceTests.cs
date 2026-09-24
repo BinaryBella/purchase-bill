@@ -52,7 +52,7 @@ public class DashboardServiceTests
             await AddBill(db, Now.AddMinutes(-60 + i), 100 + i, ("Mango", 1), ("Apple", 2));
         }
 
-        var result = await CreateService(db).GetLatestOrdersAsync(DashboardRange.All);
+        var result = await CreateService(db).GetLatestOrdersAsync();
 
         Assert.Equal(5, result.Count);
         Assert.Equal(106m, result[0].NetAmount);
@@ -62,15 +62,15 @@ public class DashboardServiceTests
     }
 
     [Fact]
-    public async Task LatestOrders_TodayRange_ExcludesOlderBills()
+    public async Task LatestOrders_IncludesBillsFromPreviousDays()
     {
         var db = TestDbContextFactory.Create();
-        await AddBill(db, Now.AddDays(-1), 50, ("Mango", 1));
-        var today = await AddBill(db, Now.AddHours(-2), 75, ("Apple", 1));
+        var old = await AddBill(db, Now.AddDays(-40), 50, ("Mango", 1));
+        var recent = await AddBill(db, Now.AddHours(-2), 75, ("Apple", 1));
 
-        var result = await CreateService(db).GetLatestOrdersAsync(DashboardRange.Today);
+        var result = await CreateService(db).GetLatestOrdersAsync();
 
-        Assert.Equal(today.Id, Assert.Single(result).Id);
+        Assert.Equal([recent.Id, old.Id], result.Select(r => r.Id));
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class DashboardServiceTests
     {
         var db = TestDbContextFactory.Create();
 
-        Assert.Empty(await CreateService(db).GetLatestOrdersAsync(DashboardRange.All));
+        Assert.Empty(await CreateService(db).GetLatestOrdersAsync());
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class DashboardServiceTests
             await AddBill(db, Now.AddDays(-9 + i), 10, ("Mango", 4), ("Apple", 5));
         }
 
-        var result = await CreateService(db).GetOldestItemsAsync(DashboardRange.All);
+        var result = await CreateService(db).GetOldestItemsAsync();
 
         Assert.Equal(10, result.Count);
         Assert.All(result.Take(3), r => Assert.Equal(first.Id, r.PurchaseOrderId));

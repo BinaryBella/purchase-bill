@@ -1,9 +1,9 @@
 <app-widget-card
   title="Oldest Order Items"
-  [(range)]="loader.range"
+  [showRange]="false"
   [state]="loader.state()"
   [isEmpty]="items().length === 0"
-  emptyMessage="No purchase order items for this period."
+  emptyMessage="No purchase order items yet."
   (retry)="loader.reload()"
 >
   <ul class="items">
@@ -17,7 +17,6 @@
         <div class="items__main">
           <span class="items__name">{{ item.itemName }}</span>
           <span class="items__meta">{{ item.poNumber }}</span>
-          <span class="items__meta">Added {{ item.createdAt | date: 'MMM d, HH:mm' }}</span>
         </div>
         <span class="items__qty">
           <span class="items__qty-value">{{ item.quantity | number: '1.0-2' }}</span>

@@ -5,35 +5,30 @@ using PurchaseBill.Application.Interfaces;
 namespace PurchaseBill.Application.Services;
 
 /// <summary>
-/// Read-only queries behind the three welcome-dashboard widgets. Everything is projected
-/// straight to DTOs (no entity tracking) and filtered by the widget's date range, which is
-/// evaluated against UTC since bills are stamped with <c>DateTime.UtcNow</c>.
+/// Read-only queries behind the three welcome-dashboard widgets, projected straight to DTOs
+/// (no entity tracking). The latest-orders and oldest-items widgets always cover every bill;
+/// only the items-by-quantity widget takes a date range, which is evaluated against UTC since
+/// bills are stamped with <c>DateTime.UtcNow</c>.
 /// </summary>
 public class DashboardService(IApplicationDbContext db, TimeProvider clock) : IDashboardService
 {
     private const int LatestOrderCount = 5;
     private const int OldestItemCount = 10;
 
-    public async Task<IReadOnlyList<LatestOrderDto>> GetLatestOrdersAsync(DashboardRange range, CancellationToken ct = default)
+    public async Task<IReadOnlyList<LatestOrderDto>> GetLatestOrdersAsync(CancellationToken ct = default)
     {
-        var start = range.StartUtc(clock.GetUtcNow().UtcDateTime);
-
         return await db.PurchaseBills
             .AsNoTracking()
-            .Where(b => start == null || b.CreatedAt >= start)
             .OrderByDescending(b => b.CreatedAt).ThenByDescending(b => b.Id)
             .Take(LatestOrderCount)
             .Select(b => new LatestOrderDto(b.Id, b.PoNumber, b.TotalCost, b.TotalItems, b.CreatedAt))
             .ToListAsync(ct);
     }
 
-    public async Task<IReadOnlyList<OldestItemDto>> GetOldestItemsAsync(DashboardRange range, CancellationToken ct = default)
+    public async Task<IReadOnlyList<OldestItemDto>> GetOldestItemsAsync(CancellationToken ct = default)
     {
-        var start = range.StartUtc(clock.GetUtcNow().UtcDateTime);
-
         return await db.PurchaseBillItems
             .AsNoTracking()
-            .Where(i => start == null || i.PurchaseBill!.CreatedAt >= start)
             .OrderBy(i => i.PurchaseBill!.CreatedAt).ThenBy(i => i.PurchaseBillId).ThenBy(i => i.Id)
             .Take(OldestItemCount)
             .Select(i => new OldestItemDto(

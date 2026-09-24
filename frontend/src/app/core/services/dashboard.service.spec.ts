@@ -15,22 +15,20 @@ describe('DashboardService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('requests the latest orders for the chosen range', () => {
-    service.getLatestOrders('Last7Days').subscribe();
+  it('requests the latest orders without any date filter', () => {
+    service.getLatestOrders().subscribe();
 
-    const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiUrl}/dashboard/latest-orders`,
-    );
+    const req = httpMock.expectOne(`${environment.apiUrl}/dashboard/latest-orders`);
     expect(req.request.method).toBe('GET');
-    expect(req.request.params.get('range')).toBe('Last7Days');
+    expect(req.request.params.keys()).toEqual([]);
     req.flush([]);
   });
 
-  it('requests the oldest items for the chosen range', () => {
-    service.getOldestItems('Today').subscribe();
+  it('requests the oldest items without any date filter', () => {
+    service.getOldestItems().subscribe();
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/dashboard/oldest-items`);
-    expect(req.request.params.get('range')).toBe('Today');
+    const req = httpMock.expectOne(`${environment.apiUrl}/dashboard/oldest-items`);
+    expect(req.request.params.keys()).toEqual([]);
     req.flush([]);
   });
 
